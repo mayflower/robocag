@@ -1,30 +1,24 @@
 import langchain
-import cv2
-import torch
 from PIL import Image
 from time import sleep
 from langchain.agents import Tool, AgentType, initialize_agent
-from langchain.tools import HumanInputRun, tool
 from langchain.chat_models import ChatOpenAI
-from langchain.experimental.plan_and_execute import (
-    PlanAndExecute,
-    load_agent_executor,
-    load_chat_planner,
-)
+from langchain.tools.render import render_text_description
+from langchain.agents.format_scratchpad import format_log_to_str
+from langchain.agents.output_parsers import ReActSingleInputOutputParser
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationSummaryBufferMemory
 from termcolor import colored
 from fake_client import Client
-from ram.models import ram
-from ram import inference_ram as inference
-from ram import get_transform
+from agent_prompt import agent_prompt
+from langchain.agents import AgentExecutor
+from human_voice_input import human_voice_input
 
 MODEL = "gpt-4"
 
 langchain.debug = True
 llm = ChatOpenAI(temperature=0, model=MODEL)
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 skynet = Client()
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # transform = get_transform(image_size=384)
@@ -120,26 +114,48 @@ tools = [
         name="move backward",
         description="useful for when you move backward",
     ),
-    HumanInputRun(),
+    Tool.from_function(
+        func=human_voice_input,
+        name="Human",
+        description=(
+            "You can ask a human for guidance when you think you "
+            "got stuck or you are not sure what to do next. "
+            "The input should be a question for the human."
+        )
+    )
 ]
 
 systemprompt = """You are a dog that can look, listen, move and speak. 
 Your Owner is a human that can give you commands.
-Let's first understand the task and devise a plan to execute the task.
-Please output the plan starting with the header 'Plan:' 
-and then followed by a numbered list of steps. 
-Please make the plan the minimum number of steps required 
-to accurately complete the task. If the task is a question, 
-the final step should almost always be 'Given the above steps taken, 
-please fulfill your owners original command.'. 
-At the end of your plan, say '<END_OF_PLAN>'
+
 
 """
 
-planner = load_chat_planner(llm, system_prompt=systemprompt)
-executor = load_agent_executor(llm, tools, verbose=True)
-agent = PlanAndExecute(planner=planner, executor=executor, verbose=True)
+prompt = agent_prompt.partial(tools=render_text_description(tools), tool_names=", ".join([t.name for t in tools]))
+llm_with_stop = llm.bind(stop=["\nObservation"])
 
+agent = (
+        {
+            "input": lambda x: x["input"],
+            "agent_scratchpad": lambda x: format_log_to_str(
+                x["intermediate_steps"]
+            ),
+            "chat_history": lambda x: x["chat_history"],
+        }
+        | prompt
+        | llm_with_stop
+        | ReActSingleInputOutputParser()
+    )
+
+memory = ConversationSummaryBufferMemory(
+        llm=llm, memory_key="chat_history", return_messages=True
+    )
+agent_executor = AgentExecutor(
+    agent=agent,
+    tools=tools,
+    verbose=True,
+    memory=memory,
+)
 
 def run():
     skynet.turn_on_client("skynet")
@@ -148,7 +164,9 @@ def run():
     try:
         while True:
             query = input(colored("You: ", "white", attrs=["bold"]))
-            result = agent.run(input=query)
+            print(query)
+            print(agent_executor.InputType)
+            result = agent_executor.invoke({"input": query})["output"]
             print(
                 colored("Answer: ", "green", attrs=["bold"]),
                 colored(result, "light_green"),
