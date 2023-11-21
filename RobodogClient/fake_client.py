@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import io
-import cv2
 import copy
 import socket
 import struct
 import threading
 import numpy as np
-from Thread import *
+from RobodogClient.Thread import *
 from PIL import Image
 
 
@@ -36,6 +35,13 @@ class Client:
     def get_image(self):
         print("get image")
         self.image = Image.open("fake_image.jpg")
+        return self.image
+    
+    def get_image_path(self):
+        print("get image path")
+        # take image with robot
+        # self.image = Image.open("fake_image.jpg")
+        self.image = "fake_image.jpg"
         return self.image
 
     def get_sonic(self):

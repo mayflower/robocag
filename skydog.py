@@ -10,16 +10,19 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationSummaryBufferMemory
 from termcolor import colored
-from fake_client import Client
+from RobodogClient.client import Client
 from agent_prompt import agent_prompt
 from langchain.agents import AgentExecutor
 from human_voice_input import human_voice_input
+from analyze_image import analyze_image
+from langchain.agents import load_tools
 
 MODEL = "gpt-4"
 
 langchain.debug = True
 llm = ChatOpenAI(temperature=0, model=MODEL)
 skynet = Client()
+skynet.turn_on_client("10.93.16.138")
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # transform = get_transform(image_size=384)
 # delete_tag_index = [127, 2961, 3351, 3265, 3338, 3355, 3359]
@@ -34,11 +37,12 @@ skynet = Client()
 def look_around(task: str):
     """observe the environment"""
     print("looking around")
-    # image = skynet.get_image()
+    image = skynet.get_image()
+    result = analyze_image(image)
     # image = transform(skynet.get_image()).unsqueeze(0).to(device)
     # res = inference(image, model)
     # print("I see: " + res[0] + " in front of me")
-    return "I see: pillar | computer | table | person | laptop | man | office building | wall lamp | sit | job in front of me"
+    return f"I see: {result}"
 
 
 def turn_left(task: str):
@@ -82,6 +86,7 @@ def stop():
     print("stopping")
     skynet.move_stop()
 
+human_tool = load_tools(["human"])[0]
 
 tools = [
     Tool.from_function(
@@ -114,15 +119,16 @@ tools = [
         name="move backward",
         description="useful for when you move backward",
     ),
-    Tool.from_function(
-        func=human_voice_input,
-        name="Human",
-        description=(
-            "You can ask a human for guidance when you think you "
-            "got stuck or you are not sure what to do next. "
-            "The input should be a question for the human."
-        )
-    )
+    # Tool.from_function(
+    #     func=human_voice_input,
+    #     name="Human",
+    #     description=(
+    #         "You can ask a human for guidance when you think you "
+    #         "got stuck or you are not sure what to do next. "
+    #         "The input should be a question for the human."
+    #     )
+    # )
+    human_tool
 ]
 
 systemprompt = """You are a dog that can look, listen, move and speak. 
@@ -163,6 +169,8 @@ def run():
     print(colored("Hello, i am RoboDog. What can i do for you?", "green"))
     try:
         while True:
+            # query = human_voice_input("Hi, ich bin die Mayflower MesseKatze, was kann ich für dich tun?")
+
             query = input(colored("You: ", "white", attrs=["bold"]))
             print(query)
             print(agent_executor.InputType)

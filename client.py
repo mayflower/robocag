@@ -5,11 +5,11 @@ import copy
 import socket
 import struct
 import threading
-from PID import *
+from RobodogClient.PID import *
 import numpy as np
-from Thread import *
+from RobodogClient.Thread import *
 from PIL import Image
-from Command import COMMAND as cmd
+from RobodogClient.Command import COMMAND as cmd
 
 
 class Client:
@@ -62,6 +62,7 @@ class Client:
                     break
                 elif data[0] == cmd.CMD_SONIC:
                     self.sonic = int(data[1])
+                    print("SONIC")
                 elif data[0] == cmd.CMD_POWER:
                     if data[1] != "":
                         power_value = round((float(data[1]) - 7.00) / 1.40 * 100)
