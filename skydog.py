@@ -154,7 +154,7 @@ def run():
     try:
         while True:
             query = human_voice_input("What should i do now?")
-            result = agent.run(input=query)
+            result = agent_executor.invoke({"input": query})["output"]
             human_voice_output(result)
     except (EOFError, KeyboardInterrupt):
         print("\nkthxbye.")

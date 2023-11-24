@@ -1,6 +1,7 @@
+import os
+from os import path
 import speech_recognition as sr
 from openai import OpenAI
-from os import path
 import pygame
 
 # Initialize the recognizer
@@ -12,9 +13,8 @@ microphone = sr.Microphone()
 pygame.mixer.init()
 
 voice_client = OpenAI()
-
+api_key = os.environ['OPENAI_API_KEY']
 speech_file_path = path.join(path.curdir, "speech.mp3")
-
 
 # Adjust for ambient noise
 with microphone as source:
@@ -24,6 +24,9 @@ with microphone as source:
 
 def human_voice_output(text):
     print("Saying ", text)
+    while pygame.mixer.music.get_busy():
+      pygame.time.Clock().tick(10)
+
     response = voice_client.audio.speech.create(
         model="tts-1",
         voice="shimmer",
@@ -39,9 +42,8 @@ def human_voice_input(question) -> str:
 
     while pygame.mixer.music.get_busy():
       pygame.time.Clock().tick(10)
-
     with microphone as source:
       audio_data = recognizer.listen(source, timeout=10)
-      text = recognizer.recognize_whisper_api(audio_data)
+      text = recognizer.recognize_whisper_api(audio_data, api_key=api_key)
       print("Hearing ", text)
       return text
