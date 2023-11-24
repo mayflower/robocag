@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import io
-import cv2
 import copy
 import socket
 import struct
