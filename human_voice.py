@@ -24,6 +24,7 @@ with microphone as source:
 
 def human_voice_output(text):
     print("Saying ", text)
+    # wait until we have said all we had to say
     while pygame.mixer.music.get_busy():
       pygame.time.Clock().tick(10)
 
