@@ -2,7 +2,7 @@ langchain
 langchainhub
 termcolor
 openai
-SpeechRecognition
+SpeechRecognition @ git+https://github.com/Hustenbonbon/speech_recognition.git
 pyaudio
 python-dotenv
 pillow
