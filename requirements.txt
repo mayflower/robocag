@@ -5,3 +5,5 @@ openai
 SpeechRecognition
 pyaudio
 python-dotenv
+pillow
+pygame
