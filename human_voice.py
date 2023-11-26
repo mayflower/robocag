@@ -45,6 +45,6 @@ def human_voice_input(question) -> str:
       pygame.time.Clock().tick(10)
     with microphone as source:
       audio_data = recognizer.listen(source, timeout=10)
-      text = recognizer.recognize_whisper_api(audio_data, api_key=api_key)
-      print("Hearing ", text)
-      return text
+      transcription = recognizer.recognize_whisper_api(audio_data, api_key=api_key)
+      print("Hearing ", transcription.text)
+      return transcription.text
