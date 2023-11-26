@@ -4,4 +4,4 @@ termcolor
 openai
 SpeechRecognition
 pyaudio
-dotenv
+python-dotenv
