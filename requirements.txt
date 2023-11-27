@@ -7,3 +7,4 @@ pyaudio
 python-dotenv
 pillow
 pygame
+google-search-results

@@ -99,6 +99,7 @@ class Client:
         print("getting image")
         self.receiving_video(self.ip)
         print("got image")
+        return Image.fromarray(np.uint8(self.image.copy())).convert('RGB')
         return self.image.copy()
 
     def get_sonic(self):

@@ -27,9 +27,6 @@ def get_direction_from_image(image: Image, item: str) -> str:
   prompt = prompt_template.render(item=item)
   return analyze_image(image, prompt)
 
-
-
-
 def analyze_image(image: Image, prompt: str)-> str:
   """Analyses an image and returns a description"""
   full_prompt = ROBOT_PROMPT + prompt

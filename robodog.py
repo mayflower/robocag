@@ -8,7 +8,7 @@ from langchain.utilities import SerpAPIWrapper
 from langchain.memory import ConversationBufferMemory
 from analyze_image import explore_image, get_direction_from_image
 from langchain.tools import tool
-from fake_client import Client
+from client import Client
 from human_voice import human_voice_input, human_voice_output
 from time import sleep
 
@@ -142,7 +142,7 @@ agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, memory=me
 
 def run():
     print("Connecting to robot")
-    robodog.turn_on_client("localhost")
+    robodog.turn_on_client("10.93.16.138")
     human_voice_output("Hello, i am RoboDog.")
     try:
         while True:
